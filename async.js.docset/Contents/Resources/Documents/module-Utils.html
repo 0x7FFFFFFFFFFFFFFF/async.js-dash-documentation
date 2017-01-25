@@ -1,0 +1,2773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Module: Utils</title>
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main" class="nonav">
+
+    <h1 class="page-title">Module: Utils</h1>
+
+    
+
+
+
+
+<section>
+
+<header>
+    <a name="//apple_ref/Module/Utils" class="dashAnchor"></a>
+    
+        
+            
+        
+    
+</header>
+
+<article>
+    <div class="container-overview">
+    
+        
+            <div class="description">A collection of `async` utility functions.</div>
+        
+
+        
+            
+<a name="//apple_ref/Module/Utils" class="dashAnchor"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="index.js.html">index.js</a>, <a href="index.js.html#line20">line 20</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+    
+    </div>
+
+    
+
+    
+
+    
+
+     
+
+    
+
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+<a name="//apple_ref/Function/apply" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".apply"><span class="type-signature">(static) </span>apply<span class="signature">(function)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Creates a continuation function with some arguments already applied.
+
+Useful as a shorthand when combined with other control flow functions. Any
+arguments passed to the returned function are added to the arguments
+originally passed to apply.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>function</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The function you want to eventually apply all
+arguments to. Invokes with (arguments...).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arguments...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Any number of arguments to automatically apply
+when the continuation is called.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="apply.js.html">apply.js</a>, <a href="apply.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// using apply
+async.parallel([
+    async.apply(fs.writeFile, 'testfile1', 'test1'),
+    async.apply(fs.writeFile, 'testfile2', 'test2')
+]);
+
+
+// the same process without using apply
+async.parallel([
+    function(callback) {
+        fs.writeFile('testfile1', 'test1', callback);
+    },
+    function(callback) {
+        fs.writeFile('testfile2', 'test2', callback);
+    }
+]);
+
+// It's possible to pass any number of additional arguments when calling the
+// continuation:
+
+node> var fn = async.apply(sys.puts, 'one');
+node> fn('two', 'three');
+one
+two
+three</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/asyncify" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".asyncify"><span class="type-signature">(static) </span>asyncify<span class="signature">(func)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Take a sync function and make it async, passing its return value to a
+callback. This is useful for plugging sync functions into a waterfall,
+series, or other async functions. Any arguments passed to the generated
+function will be passed to the wrapped function (except for the final
+callback argument). Errors thrown will be passed to the callback.
+
+If the function passed to `asyncify` returns a Promise, that promises's
+resolved/rejected state will be used to call the callback, rather than simply
+the synchronous return value.
+
+This also means you can asyncify ES2016 `async` functions.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>func</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The synchronous function to convert to an
+asynchronous function.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="asyncify.js.html">asyncify.js</a>, <a href="asyncify.js.html#line4">line 4</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    An asynchronous wrapper of the `func`. To be invoked with
+(callback).
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// passing a regular synchronous function
+async.waterfall([
+    async.apply(fs.readFile, filename, "utf8"),
+    async.asyncify(JSON.parse),
+    function (data, next) {
+        // data is the result of parsing the text.
+        // If there was a parsing error, it would have been caught.
+    }
+], callback);
+
+// passing a function returning a promise
+async.waterfall([
+    async.apply(fs.readFile, filename, "utf8"),
+    async.asyncify(function (contents) {
+        return db.model.create(contents);
+    }),
+    function (model, next) {
+        // `model` is the instantiated model object.
+        // If there was an error, this function would be skipped.
+    }
+], callback);
+
+// es6 example
+var q = async.queue(async.asyncify(async function(file) {
+    var intermediateStep = await processFile(file);
+    return await somePromise(intermediateStep)
+}));
+
+q.push(files);</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/constant" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".constant"><span class="type-signature">(static) </span>constant<span class="signature">()</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Returns a function that when called, calls-back with the values provided.
+Useful as the first function in a <a href="module-ControlFlow.html#.waterfall">`waterfall`</a>, or for plugging values in to
+<a href="module-ControlFlow.html#.auto">`auto`</a>.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>arguments...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Any number of arguments to automatically invoke
+callback with.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="constant.js.html">constant.js</a>, <a href="constant.js.html#line4">line 4</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a function that when invoked, automatically
+invokes the callback with the previous given arguments.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>async.waterfall([
+    async.constant(42),
+    function (value, next) {
+        // value === 42
+    },
+    //...
+], callback);
+
+async.waterfall([
+    async.constant(filename, "utf8"),
+    fs.readFile,
+    function (fileData, next) {
+        //...
+    }
+    //...
+], callback);
+
+async.auto({
+    hostname: async.constant("https://server.net/"),
+    port: findFreePort,
+    launchServer: ["hostname", "port", function (options, cb) {
+        startServer(options, cb);
+    }],
+    //...
+}, callback);</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/dir" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".dir"><span class="type-signature">(static) </span>dir<span class="signature">(function)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Logs the result of an `async` function to the `console` using `console.dir`
+to display the properties of the resulting object. Only works in Node.js or
+in browsers that support `console.dir` and `console.error` (such as FF and
+Chrome). If multiple arguments are returned from the async function,
+`console.dir` is called on each argument in order.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>function</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The function you want to eventually apply all
+arguments to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arguments...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Any number of arguments to apply to the function.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="dir.js.html">dir.js</a>, <a href="dir.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// in a module
+var hello = function(name, callback) {
+    setTimeout(function() {
+        callback(null, {hello: name});
+    }, 1000);
+};
+
+// in the node repl
+node> async.dir(hello, 'world');
+{hello: 'world'}</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/ensureAsync" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".ensureAsync"><span class="type-signature">(static) </span>ensureAsync<span class="signature">(fn)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Wrap an async function and ensure it calls its callback on a later tick of
+the event loop.  If the function already calls its callback on a next tick,
+no extra deferral is added. This is useful for preventing stack overflows
+(`RangeError: Maximum call stack size exceeded`) and generally keeping
+[Zalgo](http://blog.izs.me/post/59142742143/designing-apis-for-asynchrony)
+contained.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">an async function, one that expects a node-style
+callback as its last argument.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="ensureAsync.js.html">ensureAsync.js</a>, <a href="ensureAsync.js.html#line4">line 4</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a wrapped function with the exact same call
+signature as the function passed in.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>function sometimesAsync(arg, callback) {
+    if (cache[arg]) {
+        return callback(null, cache[arg]); // this would be synchronous!!
+    } else {
+        doSomeIO(arg, callback); // this IO would be asynchronous
+    }
+}
+
+// this has a risk of stack overflows if many results are cached in a row
+async.mapSeries(args, sometimesAsync, done);
+
+// this will defer sometimesAsync's callback if necessary,
+// preventing stack overflows
+async.mapSeries(args, async.ensureAsync(sometimesAsync), done);</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/log" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".log"><span class="type-signature">(static) </span>log<span class="signature">(function)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Logs the result of an `async` function to the `console`. Only works in
+Node.js or in browsers that support `console.log` and `console.error` (such
+as FF and Chrome). If multiple arguments are returned from the async
+function, `console.log` is called on each argument in order.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>function</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The function you want to eventually apply all
+arguments to.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>arguments...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Any number of arguments to apply to the function.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="log.js.html">log.js</a>, <a href="log.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>// in a module
+var hello = function(name, callback) {
+    setTimeout(function() {
+        callback(null, 'hello ' + name);
+    }, 1000);
+};
+
+// in the node repl
+node> async.log(hello, 'world');
+'hello world'</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/memoize" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".memoize"><span class="type-signature">(static) </span>memoize<span class="signature">(fn, hasher)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Caches the results of an `async` function. When creating a hash to store
+function results against, the callback is omitted from the hash and an
+optional hash function can be used.
+
+If no hash function is specified, the first argument is used as a hash key,
+which may work reasonably if it is a string or a data type that converts to a
+distinct string. Note that objects and arrays will not behave reasonably.
+Neither will cases where the other arguments are significant. In such cases,
+specify your own hash function.
+
+The cache of results is exposed as the `memo` property of the function
+returned by `memoize`.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The function to proxy and cache results from.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>hasher</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">An optional function for generating a custom hash
+for storing results. It has all the arguments applied to it apart from the
+callback, and must be synchronous.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="memoize.js.html">memoize.js</a>, <a href="memoize.js.html#line11">line 11</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    a memoized version of `fn`
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>var slow_fn = function(name, callback) {
+    // do something
+    callback(null, result);
+};
+var fn = async.memoize(slow_fn);
+
+// fn can now be used as if it were slow_fn
+fn('some name', function() {
+    // callback
+});</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/nextTick" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".nextTick"><span class="type-signature">(static) </span>nextTick<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Calls `callback` on a later loop around the event loop. In Node.js this just
+calls `setImmediate`.  In the browser it will use `setImmediate` if
+available, otherwise `setTimeout(callback, 0)`, which means other higher
+priority events may precede the execution of `callback`.
+
+This is used internally for browser-compatibility purposes.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The function to call on a later loop around
+the event loop. Invoked with (args...).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>args...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">any number of additional arguments to pass to the
+callback on the next tick.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="nextTick.js.html">nextTick.js</a>, <a href="nextTick.js.html#line5">line 5</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>var call_order = [];
+async.nextTick(function() {
+    call_order.push('two');
+    // call_order now equals ['one','two']
+});
+call_order.push('one');
+
+async.setImmediate(function (a, b, c) {
+    // a, b, and c equal 1, 2, and 3
+}, 1, 2, 3);</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/reflect" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".reflect"><span class="type-signature">(static) </span>reflect<span class="signature">(fn)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Wraps the function in another function that always returns data even when it
+errors.
+
+The object returned has either the property `error` or `value`.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The function you want to wrap</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="reflect.js.html">reflect.js</a>, <a href="reflect.js.html#line4">line 4</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    - A function that always passes null to it's callback as
+the error. The second argument to the callback will be an `object` with
+either an `error` or a `value` property.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>async.parallel([
+    async.reflect(function(callback) {
+        // do some stuff ...
+        callback(null, 'one');
+    }),
+    async.reflect(function(callback) {
+        // do some more stuff but error ...
+        callback('bad stuff happened');
+    }),
+    async.reflect(function(callback) {
+        // do some more stuff ...
+        callback(null, 'two');
+    })
+],
+// optional callback
+function(err, results) {
+    // values
+    // results[0].value = 'one'
+    // results[1].error = 'bad stuff happened'
+    // results[2].value = 'two'
+});</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/reflectAll" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".reflectAll"><span class="type-signature">(static) </span>reflectAll<span class="signature">(tasks)</span><span class="type-signature"> &rarr; {Array}</span></h4>
+
+    
+
+
+
+<div class="description">
+    A helper function that wraps an array or an object of functions with reflect.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tasks</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">The array of functions to wrap in `async.reflect`.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="reflectAll.js.html">reflectAll.js</a>, <a href="reflectAll.js.html#line6">line 6</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-Utils.html#.reflect">async.reflect</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns an array of functions, each function wrapped in
+`async.reflect`
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">Array</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>let tasks = [
+    function(callback) {
+        setTimeout(function() {
+            callback(null, 'one');
+        }, 200);
+    },
+    function(callback) {
+        // do some more stuff but error ...
+        callback(new Error('bad stuff happened'));
+    },
+    function(callback) {
+        setTimeout(function() {
+            callback(null, 'two');
+        }, 100);
+    }
+];
+
+async.parallel(async.reflectAll(tasks),
+// optional callback
+function(err, results) {
+    // values
+    // results[0].value = 'one'
+    // results[1].error = Error('bad stuff happened')
+    // results[2].value = 'two'
+});
+
+// an example using an object instead of an array
+let tasks = {
+    one: function(callback) {
+        setTimeout(function() {
+            callback(null, 'one');
+        }, 200);
+    },
+    two: function(callback) {
+        callback('two');
+    },
+    three: function(callback) {
+        setTimeout(function() {
+            callback(null, 'three');
+        }, 100);
+    }
+};
+
+async.parallel(async.reflectAll(tasks),
+// optional callback
+function(err, results) {
+    // values
+    // results.one.value = 'one'
+    // results.two.error = 'two'
+    // results.three.value = 'three'
+});</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/setImmediate" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".setImmediate"><span class="type-signature">(static) </span>setImmediate<span class="signature">(callback)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    Calls `callback` on a later loop around the event loop. In Node.js this just
+calls `setImmediate`.  In the browser it will use `setImmediate` if
+available, otherwise `setTimeout(callback, 0)`, which means other higher
+priority events may precede the execution of `callback`.
+
+This is used internally for browser-compatibility purposes.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>callback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The function to call on a later loop around
+the event loop. Invoked with (args...).</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>args...</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                    &lt;repeatable><br>
+                
+                </td>
+            
+
+            
+
+            <td class="description last">any number of additional arguments to pass to the
+callback on the next tick.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="setImmediate.js.html">setImmediate.js</a>, <a href="setImmediate.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>var call_order = [];
+async.nextTick(function() {
+    call_order.push('two');
+    // call_order now equals ['one','two']
+});
+call_order.push('one');
+
+async.setImmediate(function (a, b, c) {
+    // a, b, and c equal 1, 2, and 3
+}, 1, 2, 3);</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/timeout" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".timeout"><span class="type-signature">(static) </span>timeout<span class="signature">(asyncFn, milliseconds, info<span class="signature-attributes">opt</span>)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Sets a time limit on an asynchronous function. If the function does not call
+its callback within the specified milliseconds, it will be called with a
+timeout error. The code property for the error object will be `'ETIMEDOUT'`.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+        <th>Attributes</th>
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>asyncFn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The asynchronous function you want to set the
+time limit.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>milliseconds</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">The specified time limit.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>info</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">*</span>
+
+
+            
+            </td>
+
+            
+                <td class="attributes">
+                
+                    &lt;optional><br>
+                
+
+                
+
+                
+                </td>
+            
+
+            
+
+            <td class="description last">Any variable you want attached (`string`, `object`, etc)
+to timeout Error for more information..</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="timeout.js.html">timeout.js</a>, <a href="timeout.js.html#line3">line 3</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    Returns a wrapped function that can be used with any of
+the control flow functions. Invoke this function with the same
+parameters as you would `asyncFunc`.
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+    <h5>Example</h5>
+    
+    <pre class="prettyprint"><code>function myFunction(foo, callback) {
+    doAsyncTask(foo, function(err, data) {
+        // handle errors
+        if (err) return callback(err);
+
+        // do some stuff ...
+
+        // return processed data
+        return callback(null, data);
+    });
+}
+
+var wrapped = async.timeout(myFunction, 1000);
+
+// call `wrapped` as you would `myFunction`
+wrapped({ bar: 'bar' }, function(err, data) {
+    // if `myFunction` takes &lt; 1000 ms to execute, `err`
+    // and `data` will have their expected values
+
+    // else `err` will be an Error with the code 'ETIMEDOUT'
+});</code></pre>
+
+
+
+        
+            
+<a name="//apple_ref/Function/unmemoize" class="dashAnchor"></a>
+
+
+    
+
+    <h4 class="name" id=".unmemoize"><span class="type-signature">(static) </span>unmemoize<span class="signature">(fn)</span><span class="type-signature"> &rarr; {function}</span></h4>
+
+    
+
+
+
+<div class="description">
+    Undoes a <a href="module-Utils.html#.memoize">memoize</a>d function, reverting it to the original,
+unmemoized form. Handy for testing.
+</div>
+
+
+
+
+
+
+
+
+
+    <h5>Parameters:</h5>
+    
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>fn</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">the memoized function</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="unmemoize.js.html">unmemoize.js</a>, <a href="unmemoize.js.html#line1">line 1</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+    <dt class="tag-see">See:</dt>
+    <dd class="tag-see">
+        <ul>
+            <li><a href="module-Utils.html#.memoize">async.memoize</a></li>
+        </ul>
+    </dd>
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h5>Returns:</h5>
+
+        
+<div class="param-desc">
+    a function that calls the original unmemoized function
+</div>
+
+
+
+<dl>
+    <dt>
+        Type
+    </dt>
+    <dd>
+        
+<span class="param-type">function</span>
+
+
+    </dd>
+</dl>
+
+
+    
+
+
+
+        
+    
+
+    
+
+    
+</article>
+
+</section>
+
+
+
+
+</div>
+
+
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Wed Jan 25 2017 22:11:10 GMT+0800 (CST)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
